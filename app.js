@@ -13,7 +13,6 @@ console.log(argv.loggroup);
 const getLogStreams = async (logGroupName, _startDate, _endDate, prefix, nextToken) => {
     var params = {
         logGroupName: logGroupName,
-        // logStreamNamePrefix: 'STRING_VALUE',
     };
 
     if (prefix) {
@@ -46,8 +45,26 @@ const getAllLogStreams = async (logGroup, startDate, endDate, prefix) => {
     return streams;
 }
 
+const getLogEvents = async (logGroup, logStream, startDate, endDate) => {
+    var params = {
+        logGroupName: 'STRING_VALUE', /* required */
+        logStreamName: 'STRING_VALUE', /* required */
+        endTime: 'NUMBER_VALUE',
+        limit: 'NUMBER_VALUE',
+        nextToken: 'STRING_VALUE',
+        startFromHead: true || false,
+        startTime: 'NUMBER_VALUE'
+      };
+
+      const logEvents = await cloudwatchlogs.getLogEvents(params).promise();
+      return logEvents;
+}
+
 console.log('Reading log streams...');
 getAllLogStreams(argv.loggroup, startDate, endDate, argv.prefix)
+    .then(result => {
+        
+    })
     .then(result => {
         console.log(result);
         console.log(startDate, endDate);
