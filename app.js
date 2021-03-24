@@ -2,13 +2,14 @@ const AWS = require('aws-sdk');
 const argv = require('minimist')(process.argv.slice(2));
 
 // node app.js --loggroup=/aws/lambda/PVOutputFunction-Hance --startdate "2021-03-20 16:25:25" --enddate "2021-03-21 16:59:59" --prefix 2021/03/21
+// node app.js --loggroup=/aws/lambda/lambda-001-s-058-e1-00-prod-encore-managedoc-ln --startdate="2021-03-21 00:00:00" --enddate="2021-03-21 23:59:59" --prefix 2021/03/21 --filter=OLS_Email_SLM_20210321120102
 
 const startDate = Date.parse(argv.startdate);
 const endDate = Date.parse(argv.enddate);
 
 const cloudwatchlogs = new AWS.CloudWatchLogs({region: 'us-east-1'});
 
-console.log(argv.loggroup);
+console.error('Reading:', argv.loggroup);
 
 const getLogStreams = async (logGroupName, _startDate, _endDate, prefix, nextToken) => {
     var params = {
@@ -75,7 +76,9 @@ const getAllLogEventsFromStream = async (logGroup, logStream, startDate, endDate
             nextToken = null;
         }
 
-        _events.events.map(e => events.push(e));
+        _events.events.map(e => {
+            events.push(e);
+        });
     } while (nextToken);
 
     return events;
@@ -92,22 +95,30 @@ const getAllLogEvents = async (logGroup, logStreams, startDate, endDate) => {
     return events;
 }
 
-console.log('Getting log streams...');
+console.error('Getting log streams...');
 getAllLogStreams(argv.loggroup, startDate, endDate, argv.prefix)
     .then(async result => {
-        console.log('Getting log events...');
+        console.error('Getting log events...');
         return await getAllLogEvents(argv.loggroup, result, startDate, endDate);
     })
     .then(result => {
         if (argv.filter) {
-            console.log('Filtering log events...');
+            console.error('Filtering log events...');
             return result.filter(e => e.message.includes(argv.filter));
         } else {
             return result;
         }
     })
     .then(result => {
-        result.map(e => console.log(e));
+        result.map(e => {
+            const parts = e.message.split('\t');
+            const json = JSON.parse(parts[3]);
+            if(false /* json.request */) {
+                console.log(json.request.DocumentFileName, json.request.LoanDocumentIdentifier);
+            } else {
+                console.log(json);
+            }
+        });
     })
     .catch(error => console.error(error));
 
