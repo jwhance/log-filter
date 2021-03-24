@@ -31,13 +31,13 @@ const getLogStreams = async (logGroupName, _startDate, _endDate, prefix, nextTok
     ];
 }
 
-const getAllLogStreams = async (logGroup, startDate, endDate, prefix) => {
+const getAllLogStreams = async (logGroup, _startDate, _endDate, prefix) => {
     let streams = [];
     let nextToken = null;
     let _streams = null;
 
     do {
-        _streams = await getLogStreams(logGroup, startDate, endDate, prefix, nextToken);
+        _streams = await getLogStreams(logGroup, _startDate, _endDate, prefix, nextToken);
         _streams[0].map(s => streams.push(s.logStreamName));
         nextToken = _streams[1];
         
@@ -46,13 +46,13 @@ const getAllLogStreams = async (logGroup, startDate, endDate, prefix) => {
     return streams;
 }
 
-const getLogEvents = async (logGroup, logStream, startDate, endDate, nextToken) => {
+const getLogEvents = async (logGroup, logStream, _startDate, _endDate, nextToken) => {
     var params = {
         logGroupName: logGroup,
         logStreamName: logStream,
-        endTime: endDate,
+        endTime: _endDate,
         startFromHead: true,
-        startTime: startDate
+        startTime: _startDate
     };
 
     if (nextToken) {
@@ -63,13 +63,13 @@ const getLogEvents = async (logGroup, logStream, startDate, endDate, nextToken) 
     return logEvents;
 }
 
-const getAllLogEventsFromStream = async (logGroup, logStream, startDate, endDate) => {
+const getAllLogEventsFromStream = async (logGroup, logStream, _startDate, _endDate) => {
     var events = [];
     var nextToken = null;
     var _events = null;
 
     do {
-        _events = await getLogEvents(logGroup, logStream, startDate, endDate, nextToken);
+        _events = await getLogEvents(logGroup, logStream, _startDate, _endDate, nextToken);
         if(_events.nextForwardToken != nextToken) {
             nextToken = _events.nextForwardToken;
         } else {
@@ -84,11 +84,11 @@ const getAllLogEventsFromStream = async (logGroup, logStream, startDate, endDate
     return events;
 }
 
-const getAllLogEvents = async (logGroup, logStreams, startDate, endDate) => {
+const getAllLogEvents = async (logGroup, logStreams, _startDate, _endDate) => {
     let events = [];
 
     for (let stream =0; stream < logStreams.length; stream++) {
-        let _events = await getAllLogEventsFromStream(logGroup, logStreams[stream], startDate, endDate);
+        let _events = await getAllLogEventsFromStream(logGroup, logStreams[stream], _startDate, _endDate);
         _events.map(e => events.push(e));
     }
 
